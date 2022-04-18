@@ -1,0 +1,26 @@
+{
+  "name": "ganft-tools",
+  "version": "1.0.0",
+  "description": "This package is a collection of tools to help developers make GA-NFTs.",
+  "scripts": {
+    "convert": "node scripts/convert.js",
+    "generate": "node scripts/generate.js",
+    "metadata": "node scripts/metadata.js"
+  },
+  "keywords": [
+    "javascript",
+    "ga-nft",
+    "nft"
+  ],
+  "author": "Taylor Sloan",
+  "license": "ISC",
+  "dependencies": {
+    "async-await-queue": "^1.2.0",
+    "commander": "^8.3.0",
+    "fs-extra": "^10.0.0",
+    "node-html-parser": "^5.2.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.0.15"
+  }
+}

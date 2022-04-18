@@ -1,0 +1,182 @@
+<!--Made and Released by MTCrypto-->
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8">
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <title id="tab-title">My First GA-NFT</title>
+    <link href="TemplateData/favicon.ico" rel="shortcut icon" type="image/png"/>
+    <link href="TemplateData/output.css" rel="stylesheet" type="text/css">
+    <script src="./libs/jquery-3.6.0.min.js"></script>
+</head>
+<body class="bg-black h-screen max-h-screen">
+<div class="flex flex-col h-screen">
+    <div id="top-bar" class="flex flex-row items-center relative m-2">
+        <a id="game-title" href="#" class="text-white block text-center game-title mx-auto text-4xl md:text-6xl lg:text-8xl" target="_blank" rel="noopener noreferrer">My First GA-NFT</a>
+        <a id="game-link" href="#" class="p-1 h-8 w-8 md:h-12 md:w-12 absolute right-0 mr-2" target="_blank" rel="noopener noreferrer">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-full w-full text-gray-300 hover:text-opacity-75" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+            </svg>
+        </a>
+    </div>
+    <div class="flex justify-center items-center flex-grow relative" id="unity-container">
+        <canvas class="unity-canvas absolute z-0 inset-0 w-full h-full" id="unity-canvas" height="500" width="500"></canvas>
+        <img id="bgElement" src="./TemplateData/bg.png" alt="background" class="absolute inset-0 z-5 w-full h-full hidden">
+        <div class="absolute z-10 hidden" id="unity-loading-bar">
+            <div class="mb-4" id="unity-logo"></div>
+            <div id="unity-progress-bar-empty" class="">
+                <div id="unity-progress-bar-full"></div>
+            </div>
+        </div>
+    </div>
+    <div class="flex justify-center items-center flex-grow relative hidden" id="browser-block-container">
+        <h1 id="browser-error-element" class="text-white font-bold text-2xl">Browser Not Supported</h1>
+    </div>
+</div>
+<script>
+    const config = {
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "#COMPANY_NAME#",
+        productName: "#PRODUCT_NAME#",
+        productVersion: "1.0",
+    };
+
+    const buildCid = "#BUILD_CID#";
+    const gatewayUrl = "#GATEWAY_URL#";
+    const directUrl = "#DIRECT_URL#";
+
+    const gateways = [
+        // For Development Purposes
+        "Build",
+        // Private Gateways
+        directUrl,
+        `${gatewayUrl}/${buildCid}`,
+        // Local IPFS Gateway
+        `http://localhost:8080/ipfs/${buildCid}`,
+        // Public IPFS Gateway
+        `https://cloudflare-ipfs.com/ipfs/${buildCid}`,
+    ];
+
+    const topBar = document.querySelector("#top-bar");
+    const titleText = document.querySelector("#game-title");
+    const canvas = document.querySelector("#unity-canvas");
+    const container = document.querySelector("#unity-container");
+    const loadingBar = document.querySelector("#unity-loading-bar");
+    const logo = document.querySelector("#unity-logo");
+    const progressBarFull = document.querySelector("#unity-progress-bar-full");
+    const unityContainer = document.querySelector("#unity-container");
+    const bgElement = document.querySelector("#bgElement");
+    const browserBlockContainer = document.querySelector("#browser-block-container");
+    const browserErrorElement = document.querySelector("#browser-error-element");
+
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    let hasBg = true;
+
+    bgElement.onerror = () => {
+        hasBg = false;
+        logo.classList.remove("hidden");
+        bgElement.classList.add("hidden");
+        loadingBar.classList.remove("bottom-0", "mb-8");
+    }
+
+    function resizeCanvas() {
+        canvas.width = container.offsetWidth;
+        canvas.height = container.offsetHeight;
+    }
+
+    function inIframe() {
+        try {
+            return window.self !== window.top;
+        } catch (e) {
+            return true;
+        }
+    }
+
+    function testGatewayUrl(url) {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: `${url}/loader.js`,
+                success: function (data) {
+                    resolve(data);
+                },
+                error: function (error) {
+                    reject(error);
+                }
+            });
+        });
+    }
+
+    async function getBuildUrl(testGatewayArr) {
+        for (let i = 0; i < testGatewayArr.length; i++) {
+            try {
+                await testGatewayUrl(testGatewayArr[i]);
+                return Promise.resolve(testGatewayArr[i]);
+            } catch (_) {}
+        }
+        return Promise.reject("Could not find function build url");
+    }
+
+    const isIframe = inIframe();
+
+    if (isIframe) {
+        titleText.classList.replace("text-4xl", "text-2xl");
+        if (hasBg) {
+            logo.classList.add("hidden");
+            bgElement.classList.remove("hidden");
+            loadingBar.classList.add("bottom-0", "mb-8");
+        }
+        if (isMobile) {
+            config.devicePixelRatio = 1;
+        }
+    } else {
+        if (isMobile) {
+            config.devicePixelRatio = 1;
+            topBar.classList.add("hidden");
+        } else {
+            window.onresize = resizeCanvas;
+        }
+    }
+    loadingBar.classList.remove("hidden");
+    resizeCanvas();
+
+    getBuildUrl(gateways).then(buildUrl => {
+        const loaderUrl = buildUrl + "/loader.js";
+
+        config["dataUrl"] = buildUrl + "/build.data";
+        config["frameworkUrl"] = buildUrl + "/framework.js";
+        config["codeUrl"] = buildUrl + "/build.wasm";
+
+        const script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = () => {
+            if (isMobile && !isIframe) {
+                loadingBar.style.display = "none";
+                unityContainer.classList.add("hidden");
+                browserBlockContainer.classList.remove("hidden");
+                browserErrorElement.innerText = "Mobile browsers are not supported.";
+            } else if (isSafari) {
+                loadingBar.classList.add("hidden");
+                unityContainer.classList.add("hidden");
+                browserBlockContainer.classList.remove("hidden");
+                browserErrorElement.innerText = "Safari is not supported.";
+            } else {
+                createUnityInstance(canvas, config, (progress) => {
+                    progressBarFull.style.width = 100 * progress + "%";
+                }).then((_) => {
+                    loadingBar.classList.add("hidden");
+                    bgElement.classList.add("hidden");
+                    resizeCanvas();
+                }).catch((message) => {
+                    alert(message);
+                });
+            }
+        };
+        document.body.appendChild(script);
+    }).catch(_ => {
+        alert("Could not retrieve game files");
+    });
+</script>
+</body>
+</html>
