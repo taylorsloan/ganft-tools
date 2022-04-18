@@ -6,8 +6,6 @@ This package is a collection of tools to convert WebGL games to GA-NFTs (Game-As
 
 First clone this repo onto your computer. Export your Unity build in WebGL format with compression format set to disabled. You can access this setting by selecting Player Settings->Publishing Settings->Compression Format.
 
-# Usage
-
 ## Convert Game
 
 Move your exported game into the input directory of the repo. Change into the project directory in the command line. There's an example game located in the input directory called "unitysample".
